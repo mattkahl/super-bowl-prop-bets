@@ -1,8 +1,18 @@
 import Head from 'next/head'
+import { useEffect, useState } from 'react'
 
 
 
 export default function Home() {
+  const [answerKey, setAnswerKey] = useState();
+  const [usersSummary, getUsersSummary] = useState();
+
+  useEffect(async () => {
+    await fetch('/api/getUsersSummary')
+    await fetch('/api/getAnswerKey')
+
+  })
+
   return (
     <div className="container">
       <Head>

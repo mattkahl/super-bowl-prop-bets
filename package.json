@@ -9,15 +9,31 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@emotion/react": "^11.10.5",
+    "@emotion/styled": "^11.10.5",
+    "@mui/icons-material": "^5.11.0",
+    "@mui/material": "^5.11.8",
     "@next/font": "13.1.4",
+    "@types/cryptr": "^4.0.1",
     "@types/node": "18.11.18",
     "@types/react": "18.0.27",
     "@types/react-dom": "18.0.10",
+    "@upstash/redis": "^1.20.0",
+    "axios": "^1.3.2",
+    "cryptr": "^6.1.0",
     "eslint": "8.32.0",
     "eslint-config-next": "13.1.4",
+    "form-data": "^4.0.0",
+    "iron-session": "^6.3.1",
+    "mailgun.js": "^8.0.6",
+    "nanoid": "^4.0.1",
     "next": "13.1.4",
+    "nodemailer": "^6.9.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "typescript": "4.9.4"
+    "react-markdown": "^8.0.5",
+    "swr": "^2.0.3",
+    "typescript": "4.9.4",
+    "zustand": "^4.3.3"
   }
 }

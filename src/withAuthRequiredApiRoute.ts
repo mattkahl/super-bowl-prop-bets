@@ -25,14 +25,14 @@ export const withAuthRequiredApiRoute = (
       return;
     }
 
-    if (session.expireAt < (new Date()).toISOString()) {
+    if (session.expires_at < (new Date()).toISOString()) {
       console.error('Session expired. Denying access.', session);
       req.session.destroy();
       res.status(403).send({});
       return;
     }
 
-    const user = await getUser(session.userId);
+    const user = await getUser(session.user_id);
 
     if (user === null) {
       console.error('User not found. Denying access.', session);

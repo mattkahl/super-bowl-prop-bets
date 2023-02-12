@@ -8,15 +8,6 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
-    <SWRConfig
-      value={{
-        fetcher: fetchJson,
-        onError: (err) => {
-          console.error(err);
-        },
-      }}
-    >
-      <Component {...pageProps} />
-    </SWRConfig>
+    <Component {...pageProps} />
   );
 }

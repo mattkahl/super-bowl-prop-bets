@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { SignupRequestBody, User } from "@/src/types";
-import { addUser, lookupUserId } from "@/src/state";
+import { addUser, getUserByEmail } from "@/src/state";
 import { sendLoginEmail } from "@/src/email";
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 
@@ -12,11 +12,10 @@ export default async function handler(
   const body = req.body as SignupRequestBody;
 
   // // Check for existing user
-  const existingUserId = await lookupUserId(body.email);
+  const existingUser = await getUserByEmail(body.email);
 
-  console.log('Looking for user id!', existingUserId, body);
-
-  if (existingUserId !== null) {
+  console.log('Checking for existing user', body.email, existingUser);
+  if (existingUser !== null) {
     res.status(409).send({ message: "User already exists. Try logging in." });
     return;
   }

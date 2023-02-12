@@ -7,6 +7,7 @@ import { getSession, getUser } from "./src/state";
 
 export const middleware = async (req: NextRequest) => {
   const res = NextResponse.next();
+  return res;
 
   const ironSession = await getIronSession(req, res, sessionOptions);
 
@@ -20,13 +21,13 @@ export const middleware = async (req: NextRequest) => {
     return NextResponse.redirect(new URL('/login', req.url));
   }
 
-  if (session.expireAt < (new Date()).toISOString()) {
+  if (session.expires_at < (new Date()).toISOString()) {
     console.error('Session expired. Denying access.', session);
     ironSession.destroy();
     return NextResponse.redirect(new URL('/login', req.url))
   }
 
-  const user = await getUser(session.userId);
+  const user = await getUser(session.user_id);
 
   if (user === null) {
     console.error('User not found. Denying access.', session);
@@ -38,5 +39,5 @@ export const middleware = async (req: NextRequest) => {
 };
 
 export const config = {
-  matcher: ['/((?!api|login|_next/static|_next/image|favicon.ico).*)'],
+  matcher: [''],
 };

@@ -18,7 +18,7 @@ const magicLinkRoute = async (
   const magicLink = await getMagicLink(magicLinkId);
 
   const now = (new Date()).toISOString();
-  if (magicLink === null || now > magicLink.expireAt) {
+  if (magicLink === null || now > magicLink.expires_at) {
     console.log('Invalid magic link. Redirecting to login.', magicLink);
 
     if (magicLink !== null) {
@@ -28,7 +28,7 @@ const magicLinkRoute = async (
     return;
   }
 
-  const user = await getUser(magicLink.userId);
+  const user = await getUser(magicLink.user_id);
 
   if (user === null) {
     console.error('User id in magic link not valid. Something is wrong.')

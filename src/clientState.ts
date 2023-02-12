@@ -1,6 +1,7 @@
 import { create } from "zustand";
-import { Question, SignupRequestBody, User } from "./types";
+import { AddQuestionRequestBody, Answer, Question, QuestionPool, QuestionPoolResponse, SignupRequestBody, Submission, UpdateQuestionRequestBody, User } from "./types";
 import axios, { AxiosResponse, AxiosError } from "axios";
+import * as _ from 'lodash';
 
 interface ClientState {
   activeUser: User | null;
@@ -10,9 +11,15 @@ interface ClientState {
   loginErrorMessage: string | null;
   isLoginInProgress: boolean;
   attemptSignup: (data: SignupRequestBody) => Promise<void>;
-  questions: null | Question[];
-  addQuestion: (newQuestion: Omit<Question, "id">) => Promise<void>;
-  refreshQuestions: () => Promise<void>;
+  questionPool: null | QuestionPool;
+  submissions: null | Submission[];
+  answers: null | Answer[];
+  addQuestion: (newQuestion: AddQuestionRequestBody) => Promise<void>;
+  refreshQuestionPool: () => Promise<void>;
+  initPage: () => Promise<void>;
+  updateQuestion: (question: Question) => Promise<void>;
+  refreshLeaderboard: () => Promise<void>;
+  lastRefreshedAt: null | Date;
   // editQuestion: (editedQuestion: Question) => Promise<Question>;
 }
 
@@ -24,16 +31,28 @@ export const useStore = create<ClientState>((set, get) => ({
   loginErrorMessage: null,
   isLoginInProgress: false,
   questions: null,
-  initPage: () => {},
-  addQuestion: async (newQuestion) => {
-    await axios.post<Question>("/api/questions", {
-      data: newQuestion
-    });
-    await get().refreshQuestions();
+  questionPool: null,
+  submissions: null,
+  answers: null,
+  lastRefreshedAt: null,
+  refreshLeaderboard: async () => {
+    const response = await axios.get<{scoredSubmissions: Submission[], answers: Answer[]}>("/api/leaderboard");
+    set({submissions: response.data.scoredSubmissions, answers: response.data.answers, lastRefreshedAt: (new Date()) })
   },
-  refreshQuestions: async () => {
-    const response = await axios.get<Question[]>("/api/questions");
-    set({questions: response.data});
+  initPage: async () => {
+    await get().refreshQuestionPool();
+  },
+  addQuestion: async (newQuestion) => {
+    await axios.post<Question>("/api/questions", newQuestion);
+    await get().refreshQuestionPool();
+  },
+  updateQuestion: async (question: Question) => {
+    await axios.patch<Question>(`/api/questions/${question.id}`, question);
+    await get().refreshQuestionPool();
+  },
+  refreshQuestionPool: async () => {
+    const response = await axios.get<QuestionPoolResponse>("/api/questionPool");
+    set({questions: response.data.questions, questionPool: _.omit(response.data, 'questions')});
   },
   attemptSignup: async (data) => {
     if (!(data.email && data.name)) {

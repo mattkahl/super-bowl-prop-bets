@@ -28,22 +28,35 @@ import BarChartIcon from "@mui/icons-material/BarChart";
 import LayersIcon from "@mui/icons-material/Layers";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import { QuestionCard } from "@/src/QuestionCard";
-import { questions } from "@/src/state";
+
 import {
   Button,
   Card,
   CardContent,
   CardHeader,
   CardMedia,
+  Checkbox,
   FormControl,
   FormControlLabel,
+  FormGroup,
+  MenuItem,
+  Modal,
   Radio,
   RadioGroup,
+  Select,
+  Stack,
   TextField,
   Unstable_Grid2 as Grid2,
 } from "@mui/material";
 import { ReactMarkdown } from "react-markdown/lib/react-markdown";
-import { Question } from "@/src/types";
+import {
+  AddQuestionRequestBody,
+  Question,
+  questions,
+  QuestionStatus,
+  UpdateQuestionRequestBody
+} from "@/src/types";
+import { useStore } from "@/src/clientState";
 
 const mainListItems = (
   <React.Fragment>
@@ -181,38 +194,109 @@ const Drawer = styled(MuiDrawer, {
 
 const mdTheme = createTheme();
 
-interface EditableQuestion extends Omit<Question, "id"> {
-  id?: Question["id"];
-}
-
-const EditQuestionForm = ({ question }: { question: EditableQuestion }) => {
+type FormQuestion = Question | AddQuestionRequestBody;
+// { question, onCancel: () => {}, onSaveComplete: () => {}} : { question: EditableQuestion, onCance: () => void, onSaveComplete: () => void }
+const EditQuestionForm = ({
+  onCancel,
+  onSaveComplete,
+  question,
+}: {
+  onCancel: () => void;
+  onSaveComplete: () => void;
+  question: FormQuestion;
+}) => {
+  const store = useStore();
   const [currentQuestion, setCurrentQuestion] = React.useState({ ...question });
+  const [isSavingInProgress, setIsSavingInProgress] = React.useState(false);
+
+  const onClickSave = async () => {
+    const questionToSave: FormQuestion = currentQuestion;
+    setIsSavingInProgress(true);
+    if ("id" in question){
+      await store.updateQuestion(questionToSave as UpdateQuestionRequestBody);
+    } else {
+      await store.addQuestion(questionToSave);
+    }
+    setIsSavingInProgress(false);
+    onSaveComplete();
+  };
 
   return (
     <Box component="form" sx={{ mt: 2, "& .MuiTextField-root": { mb: 2 } }}>
-      <TextField
-        fullWidth
-        value={currentQuestion.title}
-        label={"Title"}
-        onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-          setCurrentQuestion({
-            ...currentQuestion,
-            ...{ title: event.target.value },
-          });
-        }}
-      />
-      <TextField
-        fullWidth
-        multiline
-        value={currentQuestion.content}
-        label={"Content"}
-        onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-          setCurrentQuestion({
-            ...currentQuestion,
-            ...{ content: event.target.value },
-          });
-        }}
-      />
+      <h4>Answer</h4>
+      <Stack>
+        <TextField
+          fullWidth
+          label="Answer"
+          value={currentQuestion.answer}
+          onChange={(event) => {
+            setCurrentQuestion({
+              ...currentQuestion,
+              ...{ answer: event.target.value || null },
+            });
+          }}
+        />
+        <Select
+          value={currentQuestion.status}
+          label="Status"
+          onChange={(event) => {
+            setCurrentQuestion({
+              ...currentQuestion,
+              ...{ status: event.target.value },
+            });
+          }}
+        >
+          <MenuItem value={QuestionStatus.answerNotYetAvailable}>
+            {QuestionStatus.answerNotYetAvailable}
+          </MenuItem>
+          <MenuItem value={QuestionStatus.answeredAndCouldChange}>
+            {QuestionStatus.answeredAndCouldChange}
+          </MenuItem>
+          <MenuItem value={QuestionStatus.finalAnswerEntered}>
+            {QuestionStatus.finalAnswerEntered}
+          </MenuItem>
+        </Select>
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={currentQuestion.is_finalized}
+              onChange={(event) => {
+                setCurrentQuestion({
+                  ...currentQuestion,
+                  ...{ is_finalized: event.target.checked },
+                });
+              }}
+            />
+          }
+          label="Finalized?"
+        />
+      </Stack>
+      <h4>Question</h4>
+      <Stack>
+        <TextField
+          fullWidth
+          value={currentQuestion.title}
+          label={"Title"}
+          onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+            setCurrentQuestion({
+              ...currentQuestion,
+              ...{ title: event.target.value },
+            });
+          }}
+        />
+        <TextField
+          fullWidth
+          multiline
+          value={currentQuestion.content}
+          label={"Content"}
+          onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+            setCurrentQuestion({
+              ...currentQuestion,
+              ...{ content: event.target.value || null },
+            });
+          }}
+        />
+      </Stack>
       <h4>Choices</h4>
       {currentQuestion.choices.map((choice, choiceIndex) => (
         <Grid key={choiceIndex} container>
@@ -258,19 +342,49 @@ const EditQuestionForm = ({ question }: { question: EditableQuestion }) => {
         <code>{JSON.stringify(currentQuestion)}</code>
         <QuestionCard
           question={{
-            ...currentQuestion,
-            ...{ id: currentQuestion.id || "previewId" },
+            ...currentQuestion
           }}
         />
       </Box>
+      <Stack spacing={2} sx={{ mt: 2 }} direction="row">
+        <Button disabled={isSavingInProgress} variant="text" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button disabled={isSavingInProgress} variant="contained" color="primary" onClick={onClickSave}>
+          Save
+        </Button>
+      </Stack>
     </Box>
   );
 };
 
 function DashboardContent() {
   const [open, setOpen] = React.useState(true);
+  const [editingQuestion, setEditingQuestion] = React.useState<
+    Question | AddQuestionRequestBody | null
+  >(null);
+  const store = useStore();
+
+  React.useEffect(() => {
+    store.initPage();
+  }, []);
+
   const toggleDrawer = () => {
     setOpen(!open);
+  };
+
+  const onAddQuestion = () => {
+    const newQuestion: AddQuestionRequestBody = {
+      answer: null,
+      choices: [],
+      content: null,
+      is_finalized: false,
+      order: 1,
+      question_pool_id: "2023",
+      status: QuestionStatus.answerNotYetAvailable,
+      title: "New Question",
+    };
+    setEditingQuestion(newQuestion);
   };
 
   return (
@@ -345,20 +459,55 @@ function DashboardContent() {
         >
           <Toolbar />
 
-          <EditQuestionForm question={questions[0]} />
-          {/* <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+          <Button onClick={onAddQuestion}>Add Question</Button>
+          <Modal
+            open={Boolean(editingQuestion)}
+            // onClose={handleClose}
+            aria-labelledby="modal-modal-title"
+            aria-describedby="modal-modal-description"
+          >
+            <Box
+              sx={{
+                position: "absolute" as "absolute",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                maxWidth: "60%",
+                bgcolor: "background.paper",
+                border: "2px solid #000",
+                boxShadow: 24,
+                p: 4,
+              }}
+            >
+              {editingQuestion && (
+                <EditQuestionForm
+                  question={editingQuestion}
+                  onSaveComplete={() => {
+                    setEditingQuestion(null);
+                  }}
+                  onCancel={() => {
+                    setEditingQuestion(null);
+                  }}
+                />
+              )}
+            </Box>
+          </Modal>
+          <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
             <Grid2
               container
               spacing={{ xs: 2, md: 3 }}
               columns={{ xs: 4, sm: 8, md: 12 }}
             >
-              {questions.map((question) => (
+              {store.questions?.map((question) => (
                 <Grid2 xs={4} sm={4} md={4} key={question.id} alignSelf="stretch">
+                  <Button onClick={() => {
+                    setEditingQuestion(question);
+                  }}>Edit</Button>
                   <QuestionCard key={question.id} question={question} />
                 </Grid2>
               ))}
             </Grid2>
-          </Container> */}
+          </Container>
         </Box>
       </Box>
     </ThemeProvider>

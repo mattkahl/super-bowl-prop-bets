@@ -22,7 +22,7 @@ import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 import Link from "@mui/material/Link";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import { Chip, Dialog, DialogTitle } from "@mui/material";
+import { Chip, Dialog, DialogTitle, FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 
 import { DataGrid, GridColDef, GridValueGetterParams } from "@mui/x-data-grid";
 import { useStore } from "@/src/clientState";
@@ -78,7 +78,10 @@ export default function Album() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const [currentUser, setCurrentUser] = React.useState(null);
+
   const rows = store.submissions || [];
+  console.log(rows);
 
   return (
     <ThemeProvider theme={theme}>
@@ -140,6 +143,21 @@ export default function Album() {
               <Typography gutterBottom variant="h5" component="div">
                 Answers
               </Typography>
+              <FormControl fullWidth>
+                <InputLabel>Show Answers For User:</InputLabel>
+                <Select onChange={(event) => {
+                  const foundSubmission = store.submissions.find((submission)=>event.target.value===`${submission.userEmail}${submission.userName}`)
+                  setCurrentUser(foundSubmission)
+                }} defaultValue={store.submissions ? `${store.submissions[0].userEmail}${store.submissions[0].userName}`: null}>
+                  {
+                    store.submissions?.map((submission, index) => {
+                      return (
+                        <MenuItem key={index} value={`${submission.userEmail}${submission.userName}`}>{submission.userName}</MenuItem>
+                      )
+                    })
+                  }
+                </Select>
+              </FormControl>
               <Stack spacing={3}>
                 {store.answers?.map((answer) => {
                   return (
@@ -147,7 +165,7 @@ export default function Album() {
                       <Grid container>
 
                       </Grid>
-                      <Typography variant="body2">{answer.title}</Typography>
+                      <Typography variant="h6">{answer.title}</Typography>
                       {
                         answer.status === QuestionStatus.answerNotYetAvailable && (
                           <Chip label="N/A" />
@@ -163,7 +181,14 @@ export default function Album() {
                           <Chip color="success" label="Final" />
                         )
                       }
-                      <strong>{`    ${answer.answer}`}</strong>
+                      {
+                        <p><b>Actual answer:</b> {answer.answer}</p>
+                      }
+                      {
+                        currentUser && (
+                          <p>Contestant answer: {currentUser[answer.id]}</p>
+                        )
+                      }
                     </Container>
                   );
                 })}

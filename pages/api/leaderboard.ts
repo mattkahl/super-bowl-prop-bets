@@ -17,8 +17,8 @@ export default async function handler(
 
   const { data: cacheRows } = await supabase.from('cache').select('*');
 
-  const submissions: Submission[] = cacheRows?.[0].submissions;
-  const answers: Answer[] = cacheRows?.[0].answers;
+  const submissions = cacheRows?.[0].submissions as unknown as Submission[];
+  const answers = cacheRows?.[0].answers as unknown as Answer[];
 
   const allSubmissions : Submission[] = submissions;
   const allAnswers : Answer[] = answers;

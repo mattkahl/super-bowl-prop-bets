@@ -75,6 +75,7 @@ export default function Album() {
     setInterval(() => {
       store.refreshLeaderboard();
     }, 1000 * 20);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const rows = store.submissions || [];
@@ -109,7 +110,7 @@ export default function Album() {
                 {rows.length * 5 * 0.25})
               </Typography>
               <Typography gutterBottom variant="body1" component="div">
-                "Tentative Score" is what your score would be if the game ended
+                &quot;Tentative Score&quot; is what your score would be if the game ended
                 right now (answers that are subject to change, like total points
                 in the fourth quarter, are marked correct).
               </Typography>

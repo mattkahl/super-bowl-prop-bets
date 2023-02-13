@@ -45,6 +45,7 @@ export default async function handler(
         }
         if (currentAnswer.status === QuestionStatus.finalAnswerEntered) {
           numberOfCorrectFinalAnswers += 1;
+          numberOfCorrectAvailableAnswers += 1;
         }
       }
     }

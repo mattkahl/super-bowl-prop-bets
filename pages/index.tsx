@@ -136,7 +136,10 @@ export default function Album() {
                     <DataGrid
                       initialState={{
                         sorting: {
-                          sortModel: [{ field: "currentScore", sort: "desc" }, { field: "tentativeScore", sort: "desc" }],
+                          sortModel: [
+                            { field: "currentScore", sort: "desc" },
+                            { field: "tentativeScore", sort: "desc" },
+                          ],
                         },
                       }}
                       rows={rows}
@@ -186,8 +189,15 @@ export default function Album() {
                 </Select>
               </FormControl>
               <Stack spacing={3}>
-                { currentUser && (
-                  <p>{currentUser.userName}<br />Score: {currentUser.currentScore} ({currentUser.currentPlace})<br />Tentative Score: {currentUser.tentativeScore} ({currentUser.tentativePlace})</p>
+                {currentUser && (
+                  <p>
+                    {currentUser.userName}
+                    <br />
+                    Score: {currentUser.currentScore} (
+                    {currentUser.currentPlace})<br />
+                    Tentative Score: {currentUser.tentativeScore} (
+                    {currentUser.tentativePlace})
+                  </p>
                 )}
                 {store.answers?.map((answer) => {
                   return (

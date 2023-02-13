@@ -58,19 +58,23 @@ export default async function handler(
     });
   }
 
-  console.log("COUNT", scoredSubmissions.length);
   const tentativeScoreGroups = _.groupBy(scoredSubmissions, "tentativeScore");
   const currentScoreGroups = _.groupBy(scoredSubmissions, "currentScore");
 
   const allTentativeScores = _.uniq(
     scoredSubmissions.map((submission) => submission.tentativeScore)
   )
-    .sort()
+    .sort(function(a, b) {
+      return a - b;
+    })
     .reverse();
+
   const allFinalScores = _.uniq(
     scoredSubmissions.map((submission) => submission.currentScore)
   )
-    .sort()
+    .sort(function(a, b) {
+      return a - b;
+    })
     .reverse();
 
   for (const submission of scoredSubmissions) {

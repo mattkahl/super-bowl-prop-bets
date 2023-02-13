@@ -22,7 +22,15 @@ import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 import Link from "@mui/material/Link";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import { Chip, Dialog, DialogTitle, FormControl, InputLabel, MenuItem, Select } from "@mui/material";
+import {
+  Chip,
+  Dialog,
+  DialogTitle,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+} from "@mui/material";
 
 import { DataGrid, GridColDef, GridValueGetterParams } from "@mui/x-data-grid";
 import { useStore } from "@/src/clientState";
@@ -75,7 +83,7 @@ export default function Album() {
     setInterval(() => {
       store.refreshLeaderboard();
     }, 1000 * 20);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const [currentUser, setCurrentUser] = React.useState(null);
@@ -113,9 +121,9 @@ export default function Album() {
                 {rows.length * 5 * 0.25})
               </Typography>
               <Typography gutterBottom variant="body1" component="div">
-                &quot;Tentative Score&quot; is what your score would be if the game ended
-                right now (answers that are subject to change, like total points
-                in the fourth quarter, are marked correct).
+                &quot;Tentative Score&quot; is what your score would be if the
+                game ended right now (answers that are subject to change, like
+                total points in the fourth quarter, are marked correct).
               </Typography>
               <Typography variant="caption">
                 {store.lastRefreshedAt
@@ -126,6 +134,11 @@ export default function Album() {
                 <div style={{ display: "flex", height: "100%" }}>
                   <div style={{ flexGrow: 1 }}>
                     <DataGrid
+                      initialState={{
+                        sorting: {
+                          sortModel: [{ field: "currentScore", sort: "desc" }, { field: "tentativeScore", sort: "desc" }],
+                        },
+                      }}
                       rows={rows}
                       columns={columns}
                       pageSize={10}
@@ -145,50 +158,58 @@ export default function Album() {
               </Typography>
               <FormControl fullWidth>
                 <InputLabel>Show Answers For User:</InputLabel>
-                <Select onChange={(event) => {
-                  const foundSubmission = store.submissions.find((submission)=>event.target.value===`${submission.userEmail}${submission.userName}`)
-                  setCurrentUser(foundSubmission)
-                }} defaultValue={store.submissions ? `${store.submissions[0].userEmail}${store.submissions[0].userName}`: null}>
-                  {
-                    store.submissions?.map((submission, index) => {
-                      return (
-                        <MenuItem key={index} value={`${submission.userEmail}${submission.userName}`}>{submission.userName}</MenuItem>
-                      )
-                    })
+                <Select
+                  onChange={(event) => {
+                    const foundSubmission = store.submissions.find(
+                      (submission) =>
+                        event.target.value ===
+                        `${submission.userEmail}${submission.userName}`
+                    );
+                    setCurrentUser(foundSubmission);
+                  }}
+                  defaultValue={
+                    store.submissions
+                      ? `${store.submissions[0].userEmail}${store.submissions[0].userName}`
+                      : null
                   }
+                >
+                  {store.submissions?.map((submission, index) => {
+                    return (
+                      <MenuItem
+                        key={index}
+                        value={`${submission.userEmail}${submission.userName}`}
+                      >
+                        {submission.userName}
+                      </MenuItem>
+                    );
+                  })}
                 </Select>
               </FormControl>
               <Stack spacing={3}>
                 {store.answers?.map((answer) => {
                   return (
                     <Container key={answer.id}>
-                      <Grid container>
-
-                      </Grid>
+                      <Grid container></Grid>
                       <Typography variant="h6">{answer.title}</Typography>
+                      {answer.status ===
+                        QuestionStatus.answerNotYetAvailable && (
+                        <Chip label="N/A" />
+                      )}
+                      {answer.status ===
+                        QuestionStatus.answeredAndCouldChange && (
+                        <Chip color="primary" label="Could Change" />
+                      )}
+                      {answer.status === QuestionStatus.finalAnswerEntered && (
+                        <Chip color="success" label="Final" />
+                      )}
                       {
-                        answer.status === QuestionStatus.answerNotYetAvailable && (
-                          <Chip label="N/A" />
-                        )
+                        <p>
+                          <b>Actual answer:</b> {answer.answer}
+                        </p>
                       }
-                      {
-                        answer.status === QuestionStatus.answeredAndCouldChange && (
-                          <Chip color="primary" label="Could Change" />
-                        )
-                      }
-                      {
-                        answer.status === QuestionStatus.finalAnswerEntered && (
-                          <Chip color="success" label="Final" />
-                        )
-                      }
-                      {
-                        <p><b>Actual answer:</b> {answer.answer}</p>
-                      }
-                      {
-                        currentUser && (
-                          <p>Contestant answer: {currentUser[answer.id]}</p>
-                        )
-                      }
+                      {currentUser && (
+                        <p>Contestant answer: {currentUser[answer.id]}</p>
+                      )}
                     </Container>
                   );
                 })}
